@@ -11,10 +11,11 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 });
 
 
-function AlertMessageAds({alert, message, setAlert, checkMessage}) {
+function AlertMessageNews({alert, message, setAlert, checkMessage}) {
+    // 
     const [open, setOpen] = React.useState(false);
     React.useEffect(() => {
-        console.log(alert, "testing ####.....................................")
+        // console.log(alert, "testing ####.....................................")
         if (alert) {
             setOpen(alert);
         }
@@ -47,4 +48,4 @@ function AlertMessageAds({alert, message, setAlert, checkMessage}) {
     )
 }
 
-export default AlertMessageAds
+export default AlertMessageNews

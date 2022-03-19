@@ -1,14 +1,16 @@
 import *as React from 'react';
 import { styled, alpha } from '@mui/material/styles';
-import { Typography, Grid, Box, Button, Modal } from '@mui/material'
+import { Typography, Grid, Box, Button, Modal, Stack } from '@mui/material'
 import { Divider } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import { makeStyles } from '@mui/styles';
-import TableMedia from '../components/Media/TableMedia';
 import Add_Ads from '../components/Ads/Add_Ads';
+import TableAdverti from '../components/Ads/TableAdverti';
 import { useVCAxios } from 'use-vc-axios'
 import api from '../api/posts'
+import AlertMessageAds from '../components/Ads/AlertMessageAds';
+
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -60,39 +62,39 @@ const gridStyle = {
 
 const useStyles = makeStyles({
     root: {
-        background: '#FAFAFA',
         width: "100%",
-        borderRadius: 10,
-        color: 'black'
     },
     cate: {
         width: "100%",
     },
 });
 
+
+
 export default function Ads() {
+
+    const classes = useStyles();
     const [open, setOpen] = React.useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-
     const [openNews, setOpenNews] = React.useState(false);
-    const handleOpenNews = () => setOpenNews(true);
-    const handleCloseNews = () => setOpenNews(false);
-
     const [page, setPage] = React.useState(1)
     const [limit, setLimit] = React.useState(10)
     const [keyword, setKeyword] = React.useState('')
     const [location, setLocation] = React.useState('')
     const [post, setPost] = React.useState([])
-    const classes = useStyles();
+
+     //Alert Message
+     const [alert, setAlert] = React.useState(false)
+     const [message, setMessage] = React.useState("")
+     const [checkMessage, setcheckMessage] = React.useState("")
+
+    const handleOpenNews = () => setOpenNews(true);
+    const handleCloseNews = () => setOpenNews(false);
 
     const { data, loading, refetch, error } = useVCAxios({
         axiosInstance: api,
         method: 'GET',
         url: `/api/cms/adsData/get?page=${page}&limit=${limit}&keyword=${keyword}&location=${location}`
-
     })
-
 
     React.useEffect(() => {
         refetch()
@@ -105,7 +107,6 @@ export default function Ads() {
         }
     }, [data])
 
-    // console.log(post)
     return (
         <Box>
             <Grid container spacing={6}>
@@ -117,9 +118,9 @@ export default function Ads() {
                 </Grid>
 
                 <Grid item xs={6} >
-                    <Search sx={{ borderRadius: 5, color: 'grey.400' }} >
+                    <Search sx={{ borderRadius: 5 }} >
                         <SearchIconWrapper>
-                            <SearchIcon />
+                            <SearchIcon sx={{ color: 'grey.400' }} />
                         </SearchIconWrapper>
                         <StyledInputBase
                             placeholder="Search"
@@ -148,7 +149,13 @@ export default function Ads() {
                             borderRadius: 7,
                             p: 3,
                         }}>
-                            <Add_Ads />
+                            <Add_Ads 
+                                setRefetch={refetch}  
+                                handleCloseNews={handleCloseNews} 
+                                setMessage={setMessage} 
+                                setAlert={setAlert} 
+                                setcheckMessage={setcheckMessage}  
+                            />
                         </Box>
                     </Modal>
                 </Grid>
@@ -158,24 +165,74 @@ export default function Ads() {
                         <Grid item xs={3} >
                             <Button className={classes.root}
                                 disableElevation
-                                onClick={() => setLocation('')}>
-                                All </Button>
+                                onClick={() => setLocation('')}
+                                sx={{
+                                    background: location === "" ? '#3f50b5'  : '#FAFAFA',
+                                    color: location === "" ? '#fff'  : '#5B5BF6',
+                                    "&:hover": {
+                                        background: '#3f50b5',
+                                        color: '#fff',
+                                    },
+                                }}
+                                >
+                                    All 
+                                </Button>
                         </Grid>
                         <Grid item xs={3} >
-                            <Button className={classes.root} onClick={() => setLocation('topBar')}>Top Bar</Button>
+                            <Button className={classes.root} onClick={() => setLocation('topBar')}
+                            sx={{
+                                background: location === "topBar" ? '#3f50b5'  : '#FAFAFA',
+                                color: location === "topBar" ? '#fff'  : '#5B5BF6',
+                                "&:hover": {
+                                    background: '#3f50b5',
+                                    color: '#fff',
+                                },
+                            }}
+                            >
+                                Top Bar
+                            </Button>
                         </Grid>
                         <Grid item xs={3} >
-                            <Button className={classes.root} onClick={() => setLocation('sideBar')}>Side Bar</Button>
+                            <Button className={classes.root} onClick={() => setLocation('sideBar')}
+                            sx={{
+                                background: location === "sideBar" ? '#3f50b5'  : '#FAFAFA',
+                                color: location === "sideBar" ? '#fff'  : '#5B5BF6',
+                                "&:hover": {
+                                    background: '#3f50b5',
+                                    color: '#fff',
+                                },
+                            }}
+                            >
+                                Side Bar
+                            </Button>
                         </Grid>
                         <Grid item xs={3} >
-                            <Button className={classes.root} onClick={() => setLocation('body')}>Body</Button>
+                            <Button className={classes.root} onClick={() => setLocation('body')}
+                            sx={{
+                                background: location === "body" ? '#3f50b5'  : '#FAFAFA',
+                                color: location === "body" ? '#fff'  : '#5B5BF6',
+                                "&:hover": {
+                                    background: '#3f50b5',
+                                    color: '#fff',
+                                },
+                            }}
+                            >
+                                Body
+                            </Button>
                         </Grid>
                     </Grid>
                 </Grid>
                 <Grid item xs={12}>
-                    <TableMedia post={post} />
+                    <TableAdverti 
+                        post={post} 
+                        setRefetch={refetch} 
+                        setMessage={setMessage} 
+                        setAlert={setAlert} 
+                        setcheckMessage={setcheckMessage}
+                    />
                 </Grid>
             </Grid>
+            <AlertMessageAds alert={alert} setAlert={setAlert} message={message} checkMessage={checkMessage}/>
         </Box >
     );
 }

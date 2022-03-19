@@ -10,11 +10,14 @@ import LiveTvIcon from '@mui/icons-material/LiveTv';
 import PublicIcon from '@mui/icons-material/Public';
 import FlagIcon from '@mui/icons-material/Flag';
 import DesktopMacIcon from '@mui/icons-material/DesktopMac';
+import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import SportsBaseballIcon from '@mui/icons-material/SportsBaseball';
 import { Link } from 'react-router-dom';
 
 const sizeIcon = {
     fontSize: 40
 }
+
 const style = {
     position: 'absolute',
     top: '50%',
@@ -30,6 +33,7 @@ const style = {
 const alignBottom = {
     alignItems: 'center',
 }
+
 const SelectCategory = styled(Button)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? "#1A2027" : theme.palette.grey[100],
     ...theme.typography.body2,
@@ -38,21 +42,21 @@ const SelectCategory = styled(Button)(({ theme }) => ({
     textAlign: 'center',
     borderRadius: 5,
     width: "100%",
-
 }))
 
 export default function AddForm() {
-
+   
     return (
         <Box sx={style}>
-            <Typography id="modal-modal-title" variant="h4" component="h2" sx={{ mb: 3, color: 'grey.700' }}>
+            <Typography id="modal-modal-title" variant="h4" component="h4"
+                    sx={{ textAlign: 'center',  mb: 3 , color:'grey.700',}}>
                 Add News
             </Typography>
             <Grid container spacing={2} width="350px">
                 <Grid item xs={6}>
                     <SelectCategory
                         component={Link}
-                        to={"/CreateNews"}
+                        to={`/CreateNews?id=622020fdd0226f986ed9986b&name="education"`}
                     >
                         <Box sx={alignBottom}>
                             <SchoolIcon sx={sizeIcon} />
@@ -65,7 +69,7 @@ export default function AddForm() {
                 <Grid item xs={6}>
                     <SelectCategory
                         component={Link}
-                        to={"/CreateNews"}
+                        to={`/CreateNews?id=622eef8095d605fd2f3c681a&name="agriculture"`}
                     >
                         <Box sx={alignBottom}>
                             <AgricultureIcon sx={sizeIcon} />
@@ -78,7 +82,7 @@ export default function AddForm() {
                 <Grid item xs={6}>
                     <SelectCategory
                         component={Link}
-                        to={"/CreateNews"}
+                        to={`/CreateNews?id=622eef9295d605fd2f3c681d&name="entertainment"`}
                     >
                         <Box sx={alignBottom}>
                             <LiveTvIcon sx={sizeIcon} />
@@ -91,7 +95,7 @@ export default function AddForm() {
                 <Grid item xs={6}>
                     <SelectCategory
                         component={Link}
-                        to={"/CreateNews"}
+                        to={`/CreateNews?id=622013bac24748a67ba9a43b&name="business"`}
                     >
                         <Box sx={alignBottom}>
                             <BusinessCenterIcon sx={sizeIcon} />
@@ -104,7 +108,7 @@ export default function AddForm() {
                 <Grid item xs={6}>
                     <SelectCategory
                         component={Link}
-                        to={"/CreateNews"}
+                        to={`/CreateNews?id=622eefa295d605fd2f3c6821&name="International"`}
                     >
                         <Box sx={alignBottom}>
                             <PublicIcon sx={sizeIcon} />
@@ -117,7 +121,7 @@ export default function AddForm() {
                 <Grid item xs={6}>
                     <SelectCategory
                         component={Link}
-                        to={"/CreateNews"}
+                        to={`/CreateNews?id=622eefac95d605fd2f3c6824&name="national"`}
                     >
                         <Box sx={alignBottom}>
                             <FlagIcon sx={sizeIcon} />
@@ -127,11 +131,37 @@ export default function AddForm() {
                         </Box>
                     </SelectCategory>
                 </Grid>
+                <Grid item xs={6}>
+                    <SelectCategory
+                        component={Link}
+                        to={`/CreateNews?id=6233f1a096938296db02ad02&name="health"`}
+                    >
+                        <Box sx={alignBottom}>
+                            <HealthAndSafetyIcon sx={sizeIcon} />
+                            <Typography id="modal-modal-description" sx={{ mt: 0 }}>
+                                Health
+                            </Typography>
+                        </Box>
+                    </SelectCategory>
+                </Grid>
+                <Grid item xs={6}>
+                    <SelectCategory
+                        component={Link}
+                        to={`/CreateNews?id=6233f1bf96938296db02ad05&name="sport"`}
+                    >
+                        <Box sx={alignBottom}>
+                            <SportsBaseballIcon sx={sizeIcon} />
+                            <Typography id="modal-modal-description" sx={{ mt: 0 }}>
+                                Sport
+                            </Typography>
+                        </Box>
+                    </SelectCategory>
+                </Grid>
                 <Grid item xs={12}>
                     <SelectCategory
                         width="200px"
                         component={Link}
-                        to={"/CreateNews"}
+                        to={`/CreateNews?id=622eefb595d605fd2f3c6827&name="technology"`}
                     >
                         <Box sx={alignBottom}>
                             <DesktopMacIcon sx={sizeIcon} />

@@ -5,6 +5,8 @@ import {
     Button,
     Typography,
     InputLabel,
+    Stack,
+
 } from '@mui/material';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import IconButton from '@mui/material/IconButton';
@@ -15,6 +17,14 @@ import TextField from '@mui/material/TextField';
 import { makeStyles } from "@material-ui/core/styles";
 import api from '../../api/posts';
 import { useVCLazyAxios } from 'use-vc-axios'
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+// upload image
+import {storage} from "../../../src/firebase"
+import { getDownloadURL , ref  } from "@firebase/storage";
+import { uploadBytesResumable } from "firebase/storage";
+import { v4 as uuidv4 } from 'uuid';
+import imageCompression from 'browser-image-compression';
+import moment from 'moment';
 
 const CssTextField = withStyles({
     root: {
@@ -52,45 +62,51 @@ const boxStyle = {
     alignItems: "center",
     justify: "center",
     borderRadius: 15,
+    height: "30vh",
     // p: 6
 }
-const Input = styled('input')({
-    display: 'none',
-});
 
-const fTitle = { xs: '24px', sm: '12px', md: '12px', lg: '24px', xl: '24px' }
-const Title = styled(Typography)(() => ({
-    color: '#797E7F',
-    marginTop: 5,
-    fontSize: fTitle,
-}))
+const useStyles = makeStyles({
+    root: {
+        // background: '#FAFAFA',
+        width: "100%",
+        height: 50,
+        "&:hover": {
+            background: '#3f50b5',
+            color: '#fff',
+        },
+        borderRadius: 10,
+        // color: 'black',
+        marginTop: 5,
+        p: 2
+    },
+    cate: {
+        width: "100%",
+    },
+})
 
-export default function Add_Ads() {
+
+
+
+
+export default function Add_Ads({setRefetch , handleCloseNews , setMessage ,setcheckMessage , setAlert }) {
+
+   const classes = useStyles();
+   const newDate = moment(new Date()).format('MMdYYYY');
+    const [page, setPage] = React.useState(1)
+    const [limit, setLimit] = React.useState(10)
+    const [keyword, setKeyword] = React.useState('')
+    const [location, setLocation] = React.useState('')   
 
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const useStyles = makeStyles({
-        root: {
-            background: '#FAFAFA',
-            width: "100%",
-            height: 50,
-            borderRadius: 10,
-            color: 'black',
-            marginTop: 5,
-            p: 2
-        },
-        cate: {
-            width: "100%",
-        },
-    });
-    const classes = useStyles();
-    //call formik 
-    const SupplySchema = Yup.object().shape({
-        title: Yup.string().required("title is required!"),
+    const [progress, setProgress] = React.useState(0);    
+    const [imageFile,setImageFile] = React.useState(null) 
+    
+   
 
-    });
 
     const { data, error, refetch, operation: createAds } = useVCLazyAxios({
         axiosInstance: api,
@@ -98,26 +114,100 @@ export default function Add_Ads() {
         method: 'POST'
     })
 
-    console.log(data, error, 'res')
+    React.useEffect( async() => {
+            
+        if(data?.success){
+            console.log(data , "when success")
+            handleCloseNews();
+            setRefetch();
+            setcheckMessage('success');
+            setMessage(data?.message)
+            setAlert(true);        
+        }
+
+    },[data])
+
+    // upload Image
+    const uploadFiles = async (file,newValue) => {
+        //
+        if(!file) return;
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true
+        }
+        const compressedFile = await imageCompression(file, options)
+
+        const config = {
+            headers: { 'content-type': 'multipart/form-data' }
+        }
+        let newName = `${uuidv4()}${newDate}${file.name.split('.').pop()}`;
+
+        var newFile = new File([compressedFile], `${newName}.png`, { type: 'image/png' });
+
+        // const storageRef = ref(storage, `files/${newFile}`);
+        console.log(newFile , "New File");
+
+        // tO firbase
+        const storageRef = ref(storage, `files/${newFile.name}`);
+        const uploadTask = uploadBytesResumable(storageRef , file);
+
+        uploadTask.on("state_changed", (snapshot) => {
+            const prog = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            );
+            setProgress(prog);
+        }, (err) => console.log(err) , 
+            () => {
+            getDownloadURL(uploadTask.snapshot.ref).then( (url)=> 
+                {                    
+                    createAds({ 
+                        variables: {
+                            ...newValue,
+                            imageName: file?.name,
+                            imageSrc:url,
+                        }
+                    })
+                })
+            }
+        );
+        
+    };
+
+    //call formik 
+    const SupplySchema = Yup.object().shape({
+        title: Yup.string().required("title is required!"),        
+        imageName: Yup.string() ,
+        imageSrc: Yup.string(),
+        status: Yup.boolean(),
+        location:  Yup.string(),
+    });
 
     const formik = useFormik({
         initialValues: {
             title: "",
             imageName: "",
-            imageSrc: "",
+            imageSrc : "",
             status: true,
             location: ""
         },
 
         validationSchema: SupplySchema,
         onSubmit: async (values, { setSubmitting, resetForm }) => {
-            console.log({ ...values, location: location });
-            createAds({
-                variables: {
-                    ...values, location: location
-                }
-            })
 
+            const newValue = {
+                ...values,
+                location: location,
+            }
+
+            if (imageFile) {
+                uploadFiles(imageFile,{...newValue});
+                return
+            }   
+
+            createAds({ 
+                variables: newValue
+            })
         }
     });
 
@@ -132,40 +222,82 @@ export default function Add_Ads() {
         resetForm,
     } = formik;
 
-    const [page, setPage] = React.useState(1)
-    const [limit, setLimit] = React.useState(10)
-    const [keyword, setKeyword] = React.useState('')
-    const [location, setLocation] = React.useState('')
+    
 
     return (
+        <>
         <FormikProvider value={formik} sx={{ alignSelf: 'center', }} >
             <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-                <Title
-                    sx={{ fontSize: fTitle, textAlign: 'center' }}
+                <Typography id="modal-modal-title" variant="h4" component="h4"
+                    sx={{ textAlign: 'center',  mb: 3 , color:'grey.700',fontWeight: 'bold', }}
                 >
                     Add Ads
-                </Title>
-                <Box style={boxStyle}>
+                </Typography>
+                <Box style={boxStyle} sx={{display:"flex" , justifyContent:"center" , flexDirection:"column"}}>
                     <Grid container spacing={1}>
                         <Grid item xs={12}
                             display="flex"
-                            sx={{ justifyContent: 'center' }}>
-                            <label htmlFor="icon-button-file">
-                                <Input
-                                    accept="image/*"
-                                    id="image"
-                                    type="file"
-                                />
-                                <IosShareIcon sx={{ mt: 15, zIndex: 2, color: 'grey.400' }} />
-                            </label>
-                        </Grid>
-                        <Grid item xs={12} display="flex" sx={{ justifyContent: 'center' }}>
-                            <InputLabel>
-                                Update Ads
-                            </InputLabel>
-                        </Grid>
+                            sx={{ justifyContent: 'center' }}
+                        >
+                            { imageFile ? (
+                            <>
+                            <Stack 
+                                sx={{ alignItems: "center",  display: imageFile ? "block" : "none",}} 
+                            >     
+                                <TextField
+                                  sx={{ display: "none" }}
+                                  fullWidth
+                                  type="file"
+                                  id="image"
+                                  onChange={(e) => setImageFile(e.target.files[0])}
+                                />   
+                                <Button>
+                                  <label for="image">
+                                      <img
+                                        src={URL.createObjectURL(imageFile)} 
+                                        style={{ width: "36vh", height: "25vh" }}
+                                        alt="preview"
+                                      />                           
+                                  </label>
+                                </Button>
+                            </Stack>
+                            </>
+                          ) : (
+                            <>                            
+                              <Stack sx={{ alignItems: "center" }}>
+                                    <TextField
+                                        sx={{ display: "none" }}
+                                        fullWidth
+                                        type="file"
+                                        id="image"
+                                        onChange={(e) => setImageFile(e.target.files[0])}
+                                    />
+                                    <label for="image">
+                                    <FileUploadOutlinedIcon
+                                        sx={{
+                                        color: "#5B5BF6",
+                                        width: "40px",
+                                        height: "40px",
+                                        cursor: "pointer",
+                                        }}
+                                    />
+                                    </label>
+                                    <Typography
+                                        sx={{
+                                            textAlign: "center",
+                                            fontSize: 15,
+                                            color: "#5B5BF6",
+                                        }}
+                                        >
+                                        Add Profile Image
+                                    </Typography>
+                              </Stack>
+                            </>
+                          )}
+                        </Grid>                       
                     </Grid>
                 </Box>
+
                 <Grid container >
                     <Grid item xs={12} sm={12} md={12} lg={12}>
                         <Box sx={{ mt: 2, }}>
@@ -188,33 +320,64 @@ export default function Add_Ads() {
                             Choose Category
                         </InputLabel>
                     </Grid>
+                    
                     <Grid item xs={12}
                         sx={{
                             display: 'flex',
                         }}>
                         <Grid container spacing={1}  >
-                            <Grid item xs={4}>
-                                <Button className={classes.root} onClick={() => setLocation('topBar')}>Top Bar</Button>
+                            <Grid item xs={4} >
+                                <Button                                     
+                                    className={classes.root} 
+                                    sx={{
+                                        background: location === "topBar" ? '#3f50b5'  : '#FAFAFA',
+                                        color: location === "topBar" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    
+                                    onClick={() => setLocation('topBar')} 
+                                >
+                                    Top Bar
+                                </Button>
                             </Grid>
                             <Grid item xs={4}>
-                                <Button className={classes.root} onClick={() => setLocation('sideBar')}>Slide Bar</Button>
+                                <Button 
+                                className={classes.root} 
+                                sx={{
+                                    background: location === "sideBar" ? '#3f50b5'  : '#FAFAFA',
+                                    color: location === "sideBar" ? '#fff'  : '#5B5BF6',
+                                    "&:hover": {
+                                        background: '#3f50b5',
+                                        color: '#fff',
+                                    },
+                                }}
+                                onClick={() => setLocation('sideBar')}>Slide Bar</Button>
                             </Grid>
                             <Grid item xs={4} >
-                                <Button className={classes.root} onClick={() => setLocation('body')}>Body</Button>
+                                <Button className={classes.root} 
+                                sx={{
+                                    background: location === "body" ? '#3f50b5'  : '#FAFAFA',
+                                    color: location === "body" ? '#fff'  : '#5B5BF6',
+                                    "&:hover": {
+                                        background: '#3f50b5',
+                                        color: '#fff',
+                                    },
+                                }}
+                                onClick={() => setLocation('body')}>Body</Button>
                             </Grid>
                         </Grid>
                     </Grid>
-
+                    
                 </Grid>
-                <Grid item xs={12}
-                    sx={{
-                        display: 'flex'
-                    }}>
-                    <Grid container alignItems='center'  >
-                        <Grid item xs={6}>
+
+                <Grid xs={12} >
+                    <Grid container alignItems='center' spacing={1}  >
+                        <Grid item xs={6} sx={{ display: "flex", justifyContent: "right" }}>
                             <Box sx={{ textAlign: 'center', mt: 5 }}>
                                 <Button
-
                                     type="submit"
                                     variant="contained"
                                     size="large"
@@ -234,9 +397,10 @@ export default function Add_Ads() {
                             </Box>
                         </Grid>
 
-                        <Grid item xs={6} >
+                        <Grid item xs={6} sx={{ display: "flex", justifyContent: "left" }}>
                             <Box sx={{ textAlign: 'center', mt: 5 }}>
-                                <Button onClick={handleClose}
+                                <Button 
+                                    onClick={handleCloseNews}
                                     variant="contained"
                                     size="large"
                                     sx={{
@@ -258,5 +422,9 @@ export default function Add_Ads() {
                 </Grid>
             </Form>
         </FormikProvider>
+
+                                   
+        
+        </>
     );
 }

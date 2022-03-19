@@ -35,6 +35,7 @@ export default function Logout() {
                 <Button href="/" sx={{ fontSize: 40, color: '#fff', width: 20, borderRadius: '45%' }}
                     onClick={() => {
                         window.localStorage.removeItem("token");
+                        window.localStorage.removeItem("user");
                     }}
                 >
                     <RiLogoutCircleRLine />

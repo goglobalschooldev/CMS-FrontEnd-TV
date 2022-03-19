@@ -8,6 +8,7 @@ import FormTable from '../components/News/FormTable';
 import { makeStyles } from '@mui/styles';
 import AddForm from '../components/News/AddForm';
 import api from '../api/posts'
+import { useVCAxios } from 'use-vc-axios'
 
 
 const Search = styled('div')(({ theme }) => ({
@@ -70,8 +71,6 @@ const gridStyle = {
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
-        background: '#FAFAFA',
         width: "100%",
     },
     cate: {
@@ -81,13 +80,37 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function News() {
+
+    const classes = useStyles();
     const [openNews, setOpenNews] = React.useState(false);
+    const [page, setPage] = React.useState(1);
+    const [limit, setLimit] = React.useState(10);
+    const [keyword, setKeyword] =  React.useState('');
+    const [category,setCategory] = React.useState('');
+    const [news, setNews] = React.useState([])
+
+    
     const handleOpenNews = () => setOpenNews(true);
     const handleCloseNews = () => setOpenNews(false);
 
-    const classes = useStyles();
+    const { data, loading, refetch, error} = useVCAxios({
+        axiosInstance: api,
+        method: 'GET',
+        url: `/api/cms/news/getNews?page=${page}&limit=${limit}&keyword=${keyword}&category=${category}`
+    })
 
+    React.useEffect(() => {
+        refetch()
+    }, [keyword, category])
 
+    React.useEffect(() => {
+        if (data) {
+            console.log(data.docs, "file News")
+            setNews(data.docs)
+        }
+    }, [data])
+
+    console.log(news , "page News")
 
     return (
         <Box>
@@ -105,6 +128,7 @@ export default function News() {
                         </SearchIconWrapper>
                         <StyledInputBase
                             placeholder="Search"
+                            onChange={(e) => setKeyword(e.target.value)}
                             inputProps={{ 'aria-label': 'search' }}
                         />
                     </Search>
@@ -115,43 +139,146 @@ export default function News() {
                 </Grid>
                 <Grid item xs={12}>
                     <Grid container spacing={1}>
-                        <Grid item xs={6}>
-                            <Grid container spacing={1}>
-                                <Grid item xs={3}>
-                                    <Button className={classes.cate} variant="contained">All</Button>
+                        
+                                <Grid item xs={1.5}>
+                                    <Button 
+                                        className={classes.cate} 
+                                        onClick={() => setCategory('')}
+                                        sx={{
+                                            background: category === "" ? '#3f50b5'  : '#FAFAFA',
+                                            color: category === "" ? '#fff'  : '#5B5BF6',
+                                            "&:hover": {
+                                                background: '#3f50b5',
+                                                color: '#fff',
+                                            },
+                                        }}
+                                    >
+                                        All
+                                    </Button>
                                 </Grid>
-                                <Grid item xs={3}>
-                                    <Button className={classes.root}>Agriculture</Button>
+                                <Grid item xs={1.5}>
+                                    <Button 
+                                        className={classes.root} 
+                                        onClick={() => setCategory('622eef8095d605fd2f3c681a')}
+                                        sx={{
+                                            background: category === "622eef8095d605fd2f3c681a" ? '#3f50b5'  : '#FAFAFA',
+                                            color: category === "622eef8095d605fd2f3c681a" ? '#fff'  : '#5B5BF6',
+                                            "&:hover": {
+                                                background: '#3f50b5',
+                                                color: '#fff',
+                                            },
+                                        }}
+                                    >
+                                            Agriculture
+                                            </Button>
                                 </Grid>
-                                <Grid item xs={3}>
-                                    <Button className={classes.root}>Education</Button>
+                                <Grid item xs={1.5}>
+                                    <Button className={classes.root} onClick={() => setCategory('622020fdd0226f986ed9986b')}
+                                     sx={{
+                                        background: category === "622020fdd0226f986ed9986b" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "622020fdd0226f986ed9986b" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >Education</Button>
                                 </Grid>
-                                <Grid item xs={3}>
-                                    <Button className={classes.root}>Entertainment</Button>
+                                <Grid item xs={2}>
+                                    <Button className={classes.root} onClick={() => setCategory('622eef9295d605fd2f3c681d')} 
+                                    sx={{
+                                        background: category === "622eef9295d605fd2f3c681d" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "622eef9295d605fd2f3c681d" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >Enter..&Tourism</Button>
                                 </Grid>
-                            </Grid>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Grid container spacing={1}>
-                                <Grid item xs={3}>
-                                    <Button className={classes.root}>Business</Button>
+                           
+                                <Grid item xs={1.5}>
+                                    <Button className={classes.root} onClick={() => setCategory('622013bac24748a67ba9a43b')}
+                                    sx={{
+                                        background: category === "622013bac24748a67ba9a43b" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "622013bac24748a67ba9a43b" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >Business</Button>
                                 </Grid>
-                                <Grid item xs={3}>
-                                    <Button className={classes.root}>National</Button>
+                                <Grid item xs={1.5}>
+                                    <Button className={classes.root} onClick={() => setCategory('622eefac95d605fd2f3c6824')}
+                                    sx={{
+                                        background: category === "622eefac95d605fd2f3c6824" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "622eefac95d605fd2f3c6824" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >National</Button>
                                 </Grid>
-                                <Grid item xs={3}>
-                                    <Button className={classes.root}>International</Button>
+                                <Grid item xs={1.8}>
+                                    <Button className={classes.root} onClick={() => setCategory('622eefa295d605fd2f3c6821')}
+                                    sx={{
+                                        background: category === "622eefa295d605fd2f3c6821" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "622eefa295d605fd2f3c6821" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >International</Button>
                                 </Grid>
-                                <Grid item xs={3}>
-                                    <Button className={classes.root}>Technology</Button>
+                                <Grid item xs={1.5}>
+                                    <Button className={classes.root} onClick={() => setCategory('622eefb595d605fd2f3c6827')}
+                                    sx={{
+                                        background: category === "622eefb595d605fd2f3c6827" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "622eefb595d605fd2f3c6827" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >Technology</Button>
                                 </Grid>
-                            </Grid>
-                        </Grid>
+                                
+                            
+                       
+                                <Grid item xs={1.5}>
+                                    <Button className={classes.root} onClick={() => setCategory('6233f1a096938296db02ad02')}
+                                    sx={{
+                                        background: category === "6233f1a096938296db02ad02" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "6233f1a096938296db02ad02" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >Health</Button>
+                                </Grid>
+                                <Grid item xs={1.5}>
+                                    <Button className={classes.root} onClick={() => setCategory('6233f1bf96938296db02ad05')}
+                                    sx={{
+                                        background: category === "6233f1bf96938296db02ad05" ? '#3f50b5'  : '#FAFAFA',
+                                        color: category === "6233f1bf96938296db02ad05" ? '#fff'  : '#5B5BF6',
+                                        "&:hover": {
+                                            background: '#3f50b5',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                    >Sport</Button>
+                                </Grid>
+                          
+
                     </Grid>
                 </Grid>
                 {/*call table */}
                 <Grid item xs={12} >
-                    <FormTable />
+                    <FormTable news={news} setRefetch={refetch} setLimit={setLimit}/>
                 </Grid>
             </Grid>
             <Modal
@@ -162,6 +289,8 @@ export default function News() {
             >
                 <AddForm handleOpenNews={handleOpenNews} />
             </Modal>
+
+            
         </Box >
 
     );

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography, CardMedia } from '@mui/material'
 import { GoGraph } from "react-icons/go";
 import { styled } from '@mui/material/styles';
-import CardMedia from '@mui/material/CardMedia';
 import api from '../../api/posts';
+import TruncateMarkup from "react-truncate-markup";
 import { Markup } from 'interweave';
 
-const fTitle = { xs: '18px', sm: '18px', md: '12px', lg: '12px', xl: '18px' }
+const fTitle = { xs: '18px', sm: '18px', md: '12px', lg: '10px', xl: '15px' }
 const fSubtitle = { xs: '12px', sm: '12px', md: '10px', lg: '8px', xl: '12px' }
 const fText = { xs: '20px', sm: '25px', md: '20px', lg: '15px', xl: '25px' }
 const f200 = { xs: '25px', sm: '30px', md: '20px', lg: '20px', xl: '30px' }
@@ -16,7 +16,7 @@ const colors = '#472CC9'
 const Item = styled(Box)(() => ({
     border: '1px solid #797E7F',
     borderRadius: 30,
-    height: 270,
+    height: 280,
     padding: 25,
 }))
 
@@ -61,7 +61,6 @@ const Status1 = styled(GoGraph)(() => ({
 
 }))
 
-
 const TextPro = styled(Typography)(() => ({
     color: colors,
     fontWeight: 'bold',
@@ -69,38 +68,51 @@ const TextPro = styled(Typography)(() => ({
 
 }))
 
-
-
 function Boxing() {
-    const [totalView, setTotalView] = useState([])
-    const [totalLike, setTotalLike] = useState([])
+
+    const [totalView, setTotalView] = useState(null)
+    const [totalLike, setTotalLike] = useState(null)
     const [topView, setTopView] = useState([])
     const [topLike, setTopLike] = useState([])
     const [doc, setDoc] = useState("");
 
     useEffect(async () => {
-        await api.get('api/cms/dashboard/getTotalView').then((res) => {
-            setTotalView(res.data.totalViews)
-        })
-        await api.get('/api/cms/dashboard/getTotalLike').then((res) => {
-            // console.log(res.data.totalLike)
-            setTotalLike(res.data.totalLike)
 
-        })
+        
         await api.get('/api/cms/dashboard/getTopViews').then((res) => {
-            console.log(res.data)
-            setTopView(res.data)
-
-            setDoc(new DOMParser().parseFromString("<h2>New Acticle</h2>", "text/xml"))
-            console.log(doc.firstChild.innerHTML)
+            console.log(res?.data?.docs, 'Topviews')
+            if(res?.data?.docs) {
+                setTopView(res?.data?.docs)
+            } else {
+                setTopView([])
+            }
 
         })
         await api.get('/api/cms/dashboard/getTopLike').then((res) => {
-            setTopLike(res.data)
+            console.log(res?.data?.docs , 'boxing')           
+            if(res?.data?.docs) {
+                setTopLike(res?.data?.docs)
+            } else {
+                setTopLike({})
+            }
+
         })
+
+        await api.get('/api/cms/dashboard/getTotalView').then((res) => {
+            console.log(res?.data?.totalViews , "totalView")
+            setTotalView(res?.data?.totalViews)
+        })
+
+        await api.get('/api/cms/dashboard/getTotalLike').then((res) => {
+            console.log(res?.data?.totalLike )
+            setTotalLike(res?.data?.totalLike)
+
+        })
+
     }, [])
 
     return (
+        
         <Grid container spacing={2}>
             <Grid item xs={12}>
                 <NextText sx={{ fontSize: f200 }}>
@@ -116,9 +128,9 @@ function Boxing() {
                     </Status>
 
                     <Grid container >
-                        <Grid xs={6}>
+                        <Grid item xs={6}>
                             <TextPro sx={{ fontSize: fText, mt: 10 }}>
-                                {totalView}
+                                {totalView !== null ? totalView : 0 }
                             </TextPro>
                             <TextPro sx={{ fontSize: fText }}>
                                 Views
@@ -135,9 +147,9 @@ function Boxing() {
                         <GoGraph />
                     </Status1>
                     <Grid container >
-                        <Grid xs={6}>
+                        <Grid item xs={6}>
                             <TextPro sx={{ fontSize: fText, mt: 10 }}>
-                                {totalLike}
+                                {totalLike !== null ? totalLike : 0 }
                             </TextPro>
                             <TextPro sx={{ fontSize: fText }}>
                                 Likes
@@ -151,7 +163,7 @@ function Boxing() {
             <Grid item xs={12} sm={6} md={4} lg={3}>
                 <Item sx={{ display: 'flex' }}>
                     <Grid container spacing={1}>
-                        <Grid xs={12}>
+                        <Grid item xs={12}>
                             <TextPro sx={{ fontSize: fText }}>
                                 Top Views
                             </TextPro>
@@ -160,23 +172,24 @@ function Boxing() {
                         {topView.map((item, index) => (
                             <>
                                 <Grid xs={10}>
-                                    <Title sx={{ fontSize: fTitle }}>
-                                        {/* 1. {item.article} */}
-                                        <Markup content={item.title} />
+                                    <Title sx={{ fontSize: fTitle , fontFamily: "Khmer OS Siemreap"}}>
+                                        
+                                        <TruncateMarkup lines={2}>
+                                            <div> {item?.title.replace(/<\/?(?!a)(?!p)(?!img)\w*\b[^>]*>/ig, '')}</div>
+                                        </TruncateMarkup>
 
                                     </Title>
                                     <SubTitle sx={{ fontSize: fSubtitle }}>
-                                        {/* {item.article} */}
+                                        
                                     </SubTitle>
 
                                 </Grid>
-                                <Grid xs={2}>
-                                    <Border sx={{ mt: 3 }}>
+                                <Grid item xs={2}>
+                                    <Border >
                                         <CardMedia
                                             component="img"
                                             height="40"
-                                            image="https://www.inpixio.com/remove-background/images/main-before.jpg"
-                                            fontSize="10"
+                                            image={`${item.thumbnail}`}
                                         />
                                     </Border>
                                 </Grid>
@@ -191,30 +204,32 @@ function Boxing() {
             <Grid item xs={12} sm={6} md={4} lg={3}>
                 <Item sx={{ display: 'flex' }}>
                     <Grid container spacing={1}>
-                        <Grid xs={12}>
+                        <Grid item xs={12}>
                             <TextPro sx={{ fontSize: fText }}>
                                 TopLike
                             </TextPro>
                         </Grid>
+                        
                         {topLike.map((item, index) => (
                             <>
-                                <Grid item xs={10}>
-                                    <Title sx={{ fontSize: fTitle }}>
-                                        1. {item.article}
+                                <Grid item xs={10} >
+                                    <Title sx={{ fontSize: fTitle , fontFamily: 'Khmer OS Siemreap' }}>
+                                        
+                                        <TruncateMarkup lines={2}>
+                                            <div> {item?.title.replace(/<\/?(?!a)(?!p)(?!img)\w*\b[^>]*>/ig, '')}</div>
+                                        </TruncateMarkup>                                       
                                     </Title>
                                     <SubTitle sx={{ fontSize: fSubtitle }}>
-                                        Lorem ipsum dolor sit amet, consetetur
-                                        sadipscing elitr, sed diam nonumy eirmod
+
                                     </SubTitle>
                                 </Grid>
 
-                                <Grid xs={2}>
-                                    <Border sx={{ mt: 3 }}>
+                                <Grid item xs={2} >
+                                    <Border >
                                         <CardMedia
                                             component="img"
                                             height="40"
-                                            image="https://www.inpixio.com/remove-background/images/main-before.jpg"
-                                            fontSize="10"
+                                            image={`${item.thumbnail}`}
                                         />
                                     </Border>
                                 </Grid>

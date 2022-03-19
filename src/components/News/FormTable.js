@@ -15,9 +15,10 @@ import { visuallyHidden } from '@mui/utils';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Tooltip from '@mui/material/Tooltip';
 import NewRow from './CreateNews/NewRow';
-import api from '../../api/posts'
 
-function createData(title,
+function createData(
+    _id,
+    title,
     newsCategory,
     view,
     like,
@@ -25,6 +26,7 @@ function createData(title,
     author,
     status) {
     return {
+        _id,
         title,
         newsCategory,
         view,
@@ -143,7 +145,7 @@ function EnhancedTableHead(props) {
                 ))}
                 <TableCell padding="checkbox">
                     <Tooltip title="Error">
-                        <IconButton>
+                        <IconButton disabled>
                             <FilterListIcon
                                 color="palette.grey.a700"
                             />
@@ -161,13 +163,16 @@ EnhancedTableHead.propTypes = {
     orderBy: PropTypes.string.isRequired,
 };
 
-export default function EnhancedTable() {
-
+export default function EnhancedTable({news , setRefetch, setLimit}) {
     const [order, setOrder] = React.useState('asc');
     const [orderBy, setOrderBy] = React.useState('calories');
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
     const [rows, setRows] = useState([]);
+
+    useEffect( async () => {
+        await setLimit(rowsPerPage)
+    },[rowsPerPage])
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -184,18 +189,16 @@ export default function EnhancedTable() {
         setPage(0);
     };
 
-
-
     // Avoid a layout jump when reaching the last page with empty rows.
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-    useEffect(async () => {
-        await api.get('api/cms/news/getNews?page=1&limit=10').then((res) => {
-            // setRows(res.data.docs)
+    useEffect(() => {
+        if(news.length !== 0 ){
             let rows = [];
-            res?.data?.docs?.forEach((element) => {
+            news.forEach((element) => {
                 let allRow = createData(
+                    element?._id,
                     element?.title,
                     element?.newsCategory,
                     element?.view,
@@ -207,9 +210,11 @@ export default function EnhancedTable() {
                 rows.push(allRow);
                 setRows([...rows]);
             });
-        })
-    }, [])
-    // console.log(rows)
+        } else {
+            setRows([]);
+        }
+            
+    }, [news])
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -229,14 +234,14 @@ export default function EnhancedTable() {
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
                                     return (
-                                        <NewRow row={row} />
+                                        <NewRow row={row} setRefetch={setRefetch}/>
                                     );
                                 })}
                         </TableBody>
                     </Table>
                 </TableContainer>
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[5, 10, 25, 100]}
                     component="div"
                     count={rows.length}
                     rowsPerPage={rowsPerPage}

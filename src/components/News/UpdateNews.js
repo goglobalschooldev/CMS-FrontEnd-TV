@@ -7,7 +7,7 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { styled } from '@mui/material/styles';
 import Card from '@mui/material/Card';
-import CreateTool from "./CreateTool";
+import UpdateTool from "./UpdateTool";
 import { Markup } from "interweave";
 import defualtImage from "../../image/news-default.jpeg"
 import { useFormik, Form, FormikProvider } from "formik";
@@ -24,9 +24,9 @@ import { ref, listAll , getDownloadURL } from "firebase/storage";
 import {storage} from "../../firebase"
 import ListImage from './ListImage';
 import defaultImage from "../../image/news-default.jpeg"
-import AlertMessageNews from './AlertMessageNews';
+import { useVCAxios } from 'use-vc-axios'
 import { async } from "@firebase/util";
-
+import AlertMessageNews from "./AlertMessageNews";
 
 // Style Component
 const Input = styled('input')({
@@ -78,7 +78,7 @@ const useStyles = makeStyles((theme) => ({
     }    
 }))
 
-export default function CreateNews() {
+export default function UpdateNews() {
     // 
     const userName = window.localStorage.getItem("user");
     let navigate = useNavigate();
@@ -87,26 +87,33 @@ export default function CreateNews() {
     const [message, setMessage] = React.useState("")
     const [checkMessage, setcheckMessage] = React.useState("")
 
+
     const classes = useStyles();
     const [itemNews, setItemNews] = useState([]);
     const [rows, setRows] = useState([]);
-     
+    const [idCategory, setIdCategory] = useState(null);
     // Modal Add THumnial
     const [imageUrl,setImageUrl] = React.useState(null);
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);    
-    const handleAddImageURL = (url) => { };
+    const handleClose = () => setOpen(false);   
+    const handleAddImageURL = () => {};
 
-    // Disable Button Submit
-    const [checkButton,setCheckButton] = useState(false);
-   
+    //getID News
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const [idNews, setIdNews] = useState(null);
+
+    useEffect( async () => {         
+        await  setIdNews(params.get("id"));     
+    }, [location.search]);
+
 
     // Get IMage From FireBase
     const [rowsImage,setRowsImage] = React.useState();
     const listRef = ref(storage, 'files');   
 
-    React.useEffect(  async () => {
+    React.useEffect( () => {
         let rows = [];
         listAll(listRef)
         .then((res) => {           
@@ -131,6 +138,7 @@ export default function CreateNews() {
            
         }).catch((error) => {
             // Uh-oh, an error occurred!
+            console.log(error)
         });
 
     },[])    
@@ -138,45 +146,34 @@ export default function CreateNews() {
     // console.log(rowsImage , "all Image Url")
     // End Get
 
-
     // ENd THumnial
-
-    //getID Category
-    const location = useLocation();
-    const params = new URLSearchParams(location.search);
-    const [idCategory, setIdCategory] = useState(null);
-    useEffect( async () => {
-        await setIdCategory(params.get("id"));
-    }, [location.search]);
-
+    
        
     // Variable Tag HTML
     const [title,setTitle] = useState("");
     const [srcImage,setScrImage] = useState("https://firebasestorage.googleapis.com/v0/b/cms-tv-stroage.appspot.com/o/files%2F033202216e0be5c-4dbf-45d2-8183-2f1a7ca20411270038203_112347667977345_4056045083864308245_n.png?alt=media&token=c6e27435-1bc5-4d31-a94c-58769cccfd5e")
 
     // API Create News 
-    const { data, error, operation:createNews } = useVCLazyAxios({
+    const { data, error, operation: updateNew } = useVCLazyAxios({
         axiosInstance: api,
-        url: `/api/cms/news/createNews`,
-        method: 'POST'
+        url: `/api/cms/news/${idNews}`,
+        method: 'PUT'
     })
 
     React.useEffect( async() => {            
-        console.log(error)
-        console.log(data,"after create")
+        console.log(data , "after update")
         if(data?.success){
-            console.log(data?.message)  
+            console.log(data?.message , "success")  
             setMessage(data?.message);
             setcheckMessage("success");
-            setAlert(true);
+            setAlert(true);   
             setTimeout(() => {
                 navigate("/news"); 
-            }, 2000);    
-                      
-        }      
-        
+            }, 2000);                  
+        }
     },[data])
 
+    
     //call formik 
     const Schema = Yup.object().shape({
         title: Yup.string().required("Title is required"), 
@@ -185,12 +182,13 @@ export default function CreateNews() {
         // author: Yup.string(),
         // thumbnail: Yup.string(),
         // socialMediaThumbnail: Yup.string(),
-        // article: Yup.string(),      
+        // article: Yup.string(),       
+        
     });
 
     const formik = useFormik({
         initialValues: {
-            // title: "",            
+            // title: editData?.title+"hahaha",            
         },
 
         validationSchema: Schema,
@@ -198,11 +196,9 @@ export default function CreateNews() {
                 
                 // Set Acticle
                 let article= "";
-               
                 if(itemNews){
 
-                    console.log(itemNews , "After itemNews");
-
+                    // console.log(itemNews , "After itemNews");
 
                     let i = 0;
                     let rows = [];
@@ -239,8 +235,8 @@ export default function CreateNews() {
 
                     })
 
-                    console.log(rows, "After Acticle");
-                    console.log(rows.join(""));
+                    // console.log(rows, "After Acticle");
+                    // console.log(rows.join(""));
                     
                     article += rows.join("");
                 }
@@ -262,9 +258,8 @@ export default function CreateNews() {
                 }     
 
                 console.log(newValue)
-                setCheckButton(true)
 
-                createNews({ 
+                updateNew({ 
                     variables:newValue
                 })               
             
@@ -275,8 +270,28 @@ export default function CreateNews() {
     const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps, setFieldValue, resetForm } = formik;
 
 
-     
-     
+    // Get Data From BackEnd    
+    const [editData,setEditData] = React.useState([]);
+    React.useEffect( async () => {
+        if (idNews !== null) {             
+            await api.get(`/api/cms/news/${idNews}`).then( res => {
+                console.log(res?.data)
+                // Title
+                setFieldValue("title" , res?.data?.title.replace(/<\/?(?!a)(?!p)(?!img)\w*\b[^>]*>/ig, '') );
+                // Thumbnail
+                setImageUrl(res?.data?.thumbnail);
+                // Category ID
+                setIdCategory(res?.data?.newsCategory?._id)
+                // Acticle
+                setItemNews(res?.data?.articleForCMS)
+
+
+            })                        
+        }
+    }, [idNews])
+
+    // End Get Data
+
 
     
     return (
@@ -285,7 +300,7 @@ export default function CreateNews() {
                 <Grid item xs={12}>
                     <Stack direction="row" spacing={2}>
                         <Link to="/news" style={{ textDecoration : "none"}} ><Typography variant='h4' >News</Typography></Link>
-                        <Typography variant='h4' >/ Create New</Typography>
+                        <Typography variant='h4' >/ Update New</Typography>
                     </Stack>
                     
                 </Grid>
@@ -311,31 +326,27 @@ export default function CreateNews() {
                                     {/* Button Add Thumnal */}
                                     
                                         {imageUrl !== null ?
-                                            <>   
-                                            <Box sx={{width:"100%"}}>                                            
+                                            <>                                                
                                                 <Button  onClick={() => handleOpen()}>
                                                     <label for="image">                                          
                                                         <img
                                                             src={`${imageUrl}`} 
-                                                            style={{ width: "100%", height: "25vh" }}
+                                                            style={{ width: "36vh", height: "25vh" }}
                                                             alt="preview"
                                                         />                                                
                                                     </label>    
                                                 </Button>
-                                            </Box> 
                                             </>
                                         :
                                             <>
-                                            <Box sx={{width:"100%"}}>
                                                 <Button sx={{color: "Green"}}  onClick={() => handleOpen()} >                                        
                                                         <img
                                                             src={`${defaultImage}`} 
-                                                            style={{ width: "100%", height: "25vh" }}
+                                                            style={{ width: "36vh", height: "25vh" }}
                                                             alt="preview"
                                                         />                                                
                                                     
                                                 </Button>
-                                            </Box>
                                             </>
                                             
                                         }          
@@ -370,7 +381,7 @@ export default function CreateNews() {
                                         Create News Tool
                                     </Typography>
                                     {/* <TableCreater /> */}
-                                    <CreateTool setItemNews={setItemNews} />
+                                    <UpdateTool setItemNews={setItemNews} itemNews={itemNews}/>
                                 </Grid>
 
                             </Grid>
@@ -441,13 +452,13 @@ export default function CreateNews() {
 
                                                         { i.check === "ImageTwoLayout" ?
                                                                 <>  
-                                                                                                                                                                                             
-                                                                    <img
-                                                                        src={`${i.text}`} 
-                                                                        style={{ width: "40%", height: "auto" }}
-                                                                        alt="preview"
-                                                                    />                                                                          
-                                                                     
+                                                                    <span>                                                        
+                                                                        <img
+                                                                            src={`${i.text}`} 
+                                                                            style={{ width: "40%", height: "auto" }}
+                                                                            alt="preview"
+                                                                        />  
+                                                                    </span>      
                                                                 </>
                                                             :
                                                             <></>
@@ -458,14 +469,13 @@ export default function CreateNews() {
                                             
                                             </Grid>
                                             <Grid item xs={12}>
-                                                <Button            
-                                                    disabled={ checkButton === false ? "" : "disabled"}                                                   
+                                                <Button                                                   
                                                     variant="contained"
                                                     color="primary"
                                                     type="submit"
                                                     endIcon={<Icon>send</Icon>}                                                
                                                 >
-                                                    POST
+                                                    UPDATE
                                                 </Button>
                                             </Grid>
                                         </Grid>
@@ -486,7 +496,6 @@ export default function CreateNews() {
 
             <AlertMessageNews  alert={alert} setAlert={setAlert} message={message} checkMessage={checkMessage} />
 
-
         </Box>
-    );
+    )
 }

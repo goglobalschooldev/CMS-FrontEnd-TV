@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState ,useEffect} from 'react'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
     Grid,
@@ -41,7 +41,6 @@ function Login() {
         setShowPassord(!showPassword)
     }
 
-
     const paperStyle = {
         padding: 40,
         width: "25%",
@@ -62,8 +61,8 @@ function Login() {
             email: "",
             password: ""
         },
-
         validationSchema: SupplySchema,
+
         onSubmit: async (values, { setSubmitting, resetForm }) => {
             console.log(values);
             await api.post(`/api/cms/users/login`, values).then(res => {
@@ -71,17 +70,17 @@ function Login() {
 
                 if (res?.data?.data?.token) {
                     window.localStorage.setItem("token", res?.data?.data?.token);
+                    window.localStorage.setItem("user", res?.data?.data?.userName);
                     setMessage(res.data.data.message);
                     setErrorMessage("success");
                     setAlert(true);
                     setTimeout(() => {
                         navigate("/");
-                    }, 5000)
+                    }, 500)
 
                 } else {
                     window.localStorage.removeItem("token");
                     navigate("/");
-
                 }
             })
                 .catch((err) => {
@@ -92,6 +91,9 @@ function Login() {
                 })
         },
     });
+
+
+     
 
     const {
         errors,
@@ -109,7 +111,8 @@ function Login() {
             <FormikProvider value={formik}>
                 <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
                     <Box
-                        className="p-0 background-image" fluid={true}
+                        className="p-0 background-image"
+                        fluid={true}
                         sx={{
                             w: '100%',
                             height: '100vh',

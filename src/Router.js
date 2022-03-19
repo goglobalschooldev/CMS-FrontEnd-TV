@@ -11,7 +11,7 @@ import Logout from './Logout';
 import Media from './page/Media';
 import Ads from './page/Ads';
 import CreateNews from './components/News/CreateNews';
-
+import UpdateNews from './components/News/UpdateNews';
 // import DetailOffer from './components/Offer/DetailOffer';
 // ----------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ export default function Router() {
                 { path: "media", element: <Media /> },
                 { path: "news", element: <News /> },
                 { path: "createNews", element: <CreateNews /> },
+                { path: "updateNews", element: <UpdateNews /> },
                 { path: "footer", element: <Footer /> },
                 { path: "ads", element: <Ads /> }
             ]

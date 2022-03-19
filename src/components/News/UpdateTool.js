@@ -39,10 +39,14 @@ const sizeIcon = {
 }
 
 
-export default function CreateTool({ setItemNews }) {
+export default function UpdateTool({ setItemNews , itemNews }) {
 
     const [currentItem, setCurrentItem] = React.useState({ text: '', check: '', key: '' , img:null })
     const [item, setItem] = React.useState([])
+
+    React.useEffect( () => {
+        setItem(itemNews);
+    },[itemNews])
 
     const addItem = () => {
         const newItem = currentItem;

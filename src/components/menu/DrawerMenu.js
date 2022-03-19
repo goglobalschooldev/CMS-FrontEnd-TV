@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import { ListItemText, ListItem, Grid, Button, Modal } from '@mui/material';
+import { ListItemText, ListItem, Grid, Button, Modal, Typography } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import { Link, useLocation } from 'react-router-dom';
@@ -13,8 +13,14 @@ import AnalyticsIcon from '@mui/icons-material/Analytics';
 import PermMediaIcon from '@mui/icons-material/PermMedia';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import Logout from '../../Logout';
+import { deepOrange, deepPurple } from '@mui/material/colors';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 
+// 
 export default function DrawerMenu() {
+    // 
+    const userName = window.localStorage.getItem("user");
+
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -111,11 +117,14 @@ export default function DrawerMenu() {
                             left: 0,
                         }}>
                         <Box sx={{ justifyContent: 'center', display: 'flex' }} >
-                            <Avatar alt="Remy Sharp" src="/Theang Ratana2.jpg" sx={{ height: '60px', width: '60px' }} />
+                            {/* <Avatar alt="Remy Sharp" src="/Theang Ratana2.jpg" sx={{ height: '60px', width: '60px' }} /> */}                            
+                            <Avatar sx={{ height: '70px', width: '70px' , bgcolor: "#fff" }}>
+                                <AccountCircleOutlinedIcon sx={{fontSize:50 , color:"#3f50b5" }}/>                        
+                            </Avatar>
                         </Box >
-                        <ListItem>
+                        {/* <ListItem>
                             <ListItemText
-                                primary='Rathnana Th'
+                                primary=""
                                 primaryTypographyProps={{
                                     color: '#fff',
                                     variant: 'h6',
@@ -124,20 +133,24 @@ export default function DrawerMenu() {
                                     fontWeight: 'bold'
                                 }}
                             />
-                        </ListItem>
+                        </ListItem> */}
                         <ListItem>
-                            <ListItemText
-                                primary='UI Designer'
-                                primaryTypographyProps={{
-                                    color: '#fff',
-                                    variant: 'caption',
-                                    textAlign: 'center',
-                                    mt: -4
-                                }}
-                            />
+                            <ListItemText>
+                                <Typography 
+                                    sx={{
+                                        color: '#fff',
+                                        variant: 'caption',
+                                        textAlign: 'center',
+                                        mt: -1,
+                                        mb:2
+                                    }}
+                                >
+                                    {userName}                                    
+                                </Typography>
+                            </ListItemText>                            
                         </ListItem>
                         <Box sx={{ justifyContent: 'center', display: 'flex', mt: -2, mb: 3 }} >
-                            <Button variant="text" sx={{ color: '#fff' }} onClick={handleOpen}>
+                            <Button variant="text" sx={{ color: '#fff' ,  }} onClick={handleOpen}>
                                 Logout
                             </Button>
                             <Modal

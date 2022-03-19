@@ -32,23 +32,23 @@ const theme = createTheme({
 function App() {
 
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await api.get('/api/cms/users/getUser?page=1&limit=3');
-        // setPosts(response.data);
-        // console.log(response.data)
-      } catch (err) {
-        if (err.response) {
+  // useEffect(() => {
+  //   const fetchPosts = async () => {
+  //     try {
+  //       const response = await api.get('/api/cms/users/getUser?page=1&limit=3');
+  //       setPosts(response.data);
+  //       console.log(response.data)
+  //     } catch (err) {
+  //       if (err.response) {
 
-          console.log(err.response.data);
-        } else {
-          console.log(`Error: ${err.message}`);
-        }
-      }
-    }
-    fetchPosts();
-  }, [])
+  //         console.log(err.response.data);
+  //       } else {
+  //         console.log(`Error: ${err.message}`);
+  //       }
+  //     }
+  //   }
+  //   fetchPosts();
+  // }, [])
 
   return (
     <ThemeProvider theme={theme} >
